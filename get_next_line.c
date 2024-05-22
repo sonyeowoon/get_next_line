@@ -5,67 +5,81 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: sangseo <sangseo@student.42gyeongsan.      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/05/06 17:06:12 by sangseo           #+#    #+#             */
-/*   Updated: 2024/05/20 03:22:46 by sangseo          ###   ########.fr       */
+/*   Created: 2024/05/22 04:06:14 by sangseo           #+#    #+#             */
+/*   Updated: 2024/05/23 01:43:51 by sangseo          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
 
-char	*check_n(const char *s)
+char	*chk_nl(char **buf)
 {
-	while (*s)
+	int	i;
+	char	*s;
+
+	i = 0;
+	while ((*buf)[i])
 	{
-		if (*s == '\n')
-			return ((char *)s);
-		s++;
+		if ((*buf)[i] == '\n')
+		{
+			s = ft_strdup((*buf) + i + 1);
+			(*buf)[i + 1] = 0;
+			return (s);
+		}
+		i++;
 	}
-	if (*s == 0)
-		return ((char *)s);
 	return (0);
 }
 
 char	*get_next_line(int fd)
 {
-	char		buf[BUFFER_SIZE + 1];
-	char		*concat;
-	static char	*newline;
-	size_t		read_l;
-	char		*temp;
+	char		*buf;
+	char		*tmp;
+	ssize_t		read_l;
+	static char	*save;
 
-	if (newline && *newline)
+	tmp = 0;
+	if (save && *save)
 	{
-		if (newline[0] == '\n')
+		buf = save;
+		save = chk_nl(&save);
+		if (!save)
 		{
-			newline++;
-			return ("\n");
-		}
-		if (*(check_n(newline)))
-		{
-			free(concat);
-			concat = ft_strdup(newline);
-			*(check_n(concat) + 1) = 0;
-			newline = ft_strdup(check_n(newline) + 1);
-			return (concat);
+			tmp = ft_strdup(buf);
+			free(buf);
 		}
 		else
-			concat = ft_strdup(newline);
+			return (buf);
 	}
-	else
-		concat = "";
+	else if (save && *save == 0)
+	{
+		free(save);
+		save = 0;
+	}
+	buf = malloc(sizeof(char) * (BUFFER_SIZE + 1));
+	if (buf == 0)
+		return (0);
 	read_l = read(fd, buf, BUFFER_SIZE);
+	if (read_l <= 0)
+	{
+		free(buf);
+		return (0);
+	}
+	buf[read_l] = 0;
+	save = chk_nl(&buf);
+	if (save)
+		return (buf);
+	if (!tmp)
+		tmp = ft_strdup(buf);
 	while (read_l > 0)
 	{
-		buf[read_l] = 0;
-		concat = ft_strjoin(concat, buf);
-		temp = check_n(concat);
-		if (*temp)
-		{
-			*(temp + 1) = 0;
-			newline = ft_strdup(check_n(buf) + 1);
-			return (concat);
-		}
 		read_l = read(fd, buf, BUFFER_SIZE);
+		buf[read_l] = 0;
+		save = tmp;
+		tmp = ft_strjoin(tmp, buf);
+		free(save);
+		save = 0;
 	}
-	return (NULL);
+	free(buf);
+	return (tmp);
 }
