@@ -6,13 +6,13 @@
 /*   By: sangseo <sangseo@student.42gyeongsan.      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/22 04:06:14 by sangseo           #+#    #+#             */
-/*   Updated: 2024/05/23 01:43:51 by sangseo          ###   ########.fr       */
+/*   Updated: 2024/05/25 01:13:30 by sangseo          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
 
-char	*chk_nl(char **buf)
+static char	*chk_nl(char **buf)
 {
 	int	i;
 	char	*s;
@@ -31,6 +31,19 @@ char	*chk_nl(char **buf)
 	return (0);
 }
 
+static char	*ft_allocfree(char *s1, char *s2, int n)
+{
+	char	*tmp;
+
+	tmp = s1;
+	if (n == 0)
+		s1 = ft_strdup(s1);
+	else
+		s1 = ft_strjoin(s1, s2);
+	free(tmp);
+	return (s1);
+}
+
 char	*get_next_line(int fd)
 {
 	char		*buf;
@@ -45,8 +58,7 @@ char	*get_next_line(int fd)
 		save = chk_nl(&save);
 		if (!save)
 		{
-			tmp = ft_strdup(buf);
-			free(buf);
+			tmp = ft_allocfree(buf, 0, 0);
 		}
 		else
 			return (buf);
@@ -60,25 +72,41 @@ char	*get_next_line(int fd)
 	if (buf == 0)
 		return (0);
 	read_l = read(fd, buf, BUFFER_SIZE);
-	if (read_l <= 0)
+	if (read_l < 0)
 	{
 		free(buf);
 		return (0);
 	}
+	if (read_l == 0)
+	{
+		free(buf);
+		return (tmp);
+	}
 	buf[read_l] = 0;
 	save = chk_nl(&buf);
 	if (save)
-		return (buf);
+	{
+		if (tmp)
+		{
+			tmp = ft_allocfree(tmp, buf, 1);
+			free(buf);
+			return (tmp);
+		}
+		else
+			return (buf);
+	}
 	if (!tmp)
 		tmp = ft_strdup(buf);
+	else if (tmp)
+		tmp = ft_allocfree(tmp, buf, 1);
 	while (read_l > 0)
 	{
 		read_l = read(fd, buf, BUFFER_SIZE);
 		buf[read_l] = 0;
-		save = tmp;
-		tmp = ft_strjoin(tmp, buf);
-		free(save);
-		save = 0;
+		save = chk_nl(&buf);
+		tmp = ft_allocfree(tmp, buf, 1);
+		if (save)
+			break ;
 	}
 	free(buf);
 	return (tmp);
