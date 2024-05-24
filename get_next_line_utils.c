@@ -6,7 +6,7 @@
 /*   By: sangseo <sangseo@student.42gyeongsan.      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/06 19:48:44 by sangseo           #+#    #+#             */
-/*   Updated: 2024/05/19 18:48:39 by sangseo          ###   ########.fr       */
+/*   Updated: 2024/05/25 03:06:25 by sangseo          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,4 +63,17 @@ char	*ft_strjoin(char const *s1, char const *s2)
 	}
 	arr[i] = 0;
 	return (arr);
+}
+
+char	*ft_allocfree(char *s1, char *s2, int n)
+{
+	char	*tmp;
+
+	tmp = s1;
+	if (n == 0)
+		s1 = ft_strdup(s1);
+	else
+		s1 = ft_strjoin(s1, s2);
+	free(tmp);
+	return (s1);
 }
